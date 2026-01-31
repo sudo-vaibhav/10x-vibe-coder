@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "threshold": 50,
+  "resetAfterSeconds": 30,
+  "alertDurationSeconds": 2,
+  "alertMessage": "Use your voice!",
+  "voice": {
+    "enabled": false
+  },
+  "monitoredApps": [
+    "Code",
+    "Cursor",
+    "Zed",
+    "Conductor",
+    "Terminal",
+    "iTerm2",
+    "Warp"
+  ],
+  "menuBar": {
+    "showCount": false,
+    "icon": "V"
+  }
+}

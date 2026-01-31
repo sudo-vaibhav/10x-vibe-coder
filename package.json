@@ -1,0 +1,24 @@
+{
+  "name": "voicenudge",
+  "version": "1.0.0",
+  "description": "A behavioral nudge tool that reminds developers to use voice input instead of typing",
+  "author": "Vaibhav / Vaatun Technologies",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "voicenudge": "./bin/voicenudge.mjs"
+  },
+  "scripts": {
+    "setup": "bun run setup.mjs",
+    "uninstall": "bun run scripts/uninstall.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
+}
