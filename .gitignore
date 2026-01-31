@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Lockfiles (keep bun.lock, ignore others)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local config (user's actual config is in ~/.voicenudge/)
+.env
+.env.local
