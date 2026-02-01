@@ -13,6 +13,9 @@
     },
     "communication": {
       "enabled": false
+    },
+    "aiApps": {
+      "enabled": false
     }
   },
   "customApps": {
@@ -21,6 +24,6 @@
   },
   "menuBar": {
     "showCount": false,
-    "icon": "10X"
+    "icon": "🦄"
   }
 }

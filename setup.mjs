@@ -29,6 +29,7 @@ const { values: argv } = parseArgs({
   args: process.argv.slice(2),
   options: {
     reconfigure: { type: 'boolean', short: 'r' },
+    configure: { type: 'boolean', short: 'c' },
     threshold: { type: 'string', short: 't' },
     apps: { type: 'string', short: 'a' },
     preset: { type: 'string', short: 'p' },
@@ -90,6 +91,8 @@ const log = {
 const HOME = homedir();
 const VIBE10X_DIR = join(HOME, '.vibe10x');
 const CONFIG_PATH = join(VIBE10X_DIR, 'config.json');
+const CATEGORIES_PATH = join(VIBE10X_DIR, 'categories.json');
+const SOURCE_CATEGORIES_PATH = join(__dirname, 'config', 'categories.json');
 const HAMMERSPOON_DIR = join(HOME, '.hammerspoon');
 const INIT_LUA_PATH = join(HAMMERSPOON_DIR, 'init.lua');
 const SOURCE_LUA_DIR = join(__dirname, 'hammerspoon');
@@ -97,6 +100,7 @@ const SOURCE_LUA_DIR = join(__dirname, 'hammerspoon');
 // Parse CLI arguments
 const args = {
   reconfigure: argv.reconfigure || argv.r,
+  configure: argv.configure || argv.c,
   threshold: argv.threshold || argv.t,
   apps: argv.apps || argv.a,
   preset: argv.preset || argv.p,
@@ -108,6 +112,16 @@ const args = {
   verbose: argv.verbose || argv.v,
   help: argv.help || argv.h,
 };
+
+// Build categories help text dynamically
+function getCategoriesHelp() {
+  const lines = [];
+  for (const [id, cat] of Object.entries(CATEGORIES)) {
+    const paddedId = id.padEnd(13);
+    lines.push(`  ${paddedId} - ${cat.description} (${cat.apps.length} apps)`);
+  }
+  return lines.join('\n');
+}
 
 // Show help
 function showHelp() {
@@ -121,25 +135,27 @@ ${colors.yellow}Usage:${colors.reset}
   vibe10x [options]    Non-interactive setup
 
 ${colors.yellow}Options:${colors.reset}
-  -r, --reconfigure          Re-run interactive setup
+  -c, --configure            Open web-based settings UI
+  -r, --reconfigure          Re-run interactive CLI setup
   -t, --threshold N          Set keystroke threshold (10-500)
   -a, --apps "A,B,C"         Add custom apps (comma-separated)
   -p, --preset NAME          Use preset (aggressive, relaxed, zen)
   --enable                   Enable Vibe10X
   --disable                  Disable Vibe10X
-  --enable-category NAME     Enable a category (devTools, communication)
+  --enable-category NAME     Enable a category
   --disable-category NAME    Disable a category
   -u, --uninstall            Remove Vibe10X
   -v, --verbose              Show debug output
   -h, --help                 Show this help
 
 ${colors.yellow}Categories:${colors.reset}
-  devTools      - Code editors, IDEs, terminals (${CATEGORIES.devTools.apps.length} apps)
-  communication - Messaging apps like WhatsApp, Signal (${CATEGORIES.communication.apps.length} apps)
+${getCategoriesHelp()}
 
 ${colors.yellow}Examples:${colors.reset}
+  vibe10x --configure
   vibe10x --preset aggressive
   vibe10x --enable-category communication
+  vibe10x --enable-category aiApps
   vibe10x --threshold 75 --apps "Notion,Obsidian"
   vibe10x --disable
 `);
@@ -196,13 +212,18 @@ function loadConfig() {
   return config;
 }
 
-// Save config
+// Save config and install categories.json
 function saveConfig(config) {
   if (!existsSync(VIBE10X_DIR)) {
     mkdirSync(VIBE10X_DIR, { recursive: true });
   }
   writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   log.success(`Config saved to ${CONFIG_PATH}`);
+
+  // Also copy categories.json to ~/.vibe10x/ for Lua to read
+  const categoriesContent = readFileSync(SOURCE_CATEGORIES_PATH, 'utf8');
+  writeFileSync(CATEGORIES_PATH, categoriesContent);
+  log.success(`Categories installed to ${CATEGORIES_PATH}`);
 }
 
 // Interactive prompt helper
@@ -224,7 +245,10 @@ async function prompt(message, defaultValue = '') {
   });
 }
 
-// Interactive category selection
+// Color cycle for category display
+const categoryColors = [colors.green, colors.yellow, colors.cyan];
+
+// Interactive category selection - dynamically handles all categories
 async function selectCategories(config) {
   console.log(`\n${colors.cyan}App Categories${colors.reset}`);
   console.log(`${colors.dim}Select which categories of apps to monitor:${colors.reset}\n`);
@@ -234,23 +258,30 @@ async function selectCategories(config) {
     config.categories = {};
   }
 
-  // Dev Tools category
-  const devToolsEnabled = config.categories.devTools?.enabled ?? true;
-  console.log(`  ${colors.green}Dev Tools${colors.reset} (${CATEGORIES.devTools.apps.length} apps)`);
-  console.log(`  ${colors.dim}${CATEGORIES.devTools.description}${colors.reset}`);
-  console.log(`  ${colors.dim}Apps: ${CATEGORIES.devTools.apps.slice(0, 5).join(', ')}...${colors.reset}`);
-  const devToolsInput = await prompt('Enable Dev Tools?', devToolsEnabled ? 'y' : 'n');
-  config.categories.devTools = { enabled: devToolsInput.toLowerCase() === 'y' };
+  const categoryIds = Object.keys(CATEGORIES);
+  for (let i = 0; i < categoryIds.length; i++) {
+    const categoryId = categoryIds[i];
+    const category = CATEGORIES[categoryId];
+    const color = categoryColors[i % categoryColors.length];
 
-  console.log('');
+    // Default: devTools enabled, others disabled
+    const defaultEnabled = categoryId === 'devTools';
+    const currentEnabled = config.categories[categoryId]?.enabled ?? defaultEnabled;
 
-  // Communication category
-  const commEnabled = config.categories.communication?.enabled ?? false;
-  console.log(`  ${colors.yellow}Communication${colors.reset} (${CATEGORIES.communication.apps.length} apps)`);
-  console.log(`  ${colors.dim}${CATEGORIES.communication.description}${colors.reset}`);
-  console.log(`  ${colors.dim}Apps: ${CATEGORIES.communication.apps.join(', ')}${colors.reset}`);
-  const commInput = await prompt('Enable Communication?', commEnabled ? 'y' : 'n');
-  config.categories.communication = { enabled: commInput.toLowerCase() === 'y' };
+    console.log(`  ${color}${category.name}${colors.reset} (${category.apps.length} apps)`);
+    console.log(`  ${colors.dim}${category.description}${colors.reset}`);
+
+    // Show app preview (first 5 apps or all if less than 8)
+    const appsPreview = category.apps.length <= 8
+      ? category.apps.join(', ')
+      : `${category.apps.slice(0, 5).join(', ')}...`;
+    console.log(`  ${colors.dim}Apps: ${appsPreview}${colors.reset}`);
+
+    const input = await prompt(`Enable ${category.name}?`, currentEnabled ? 'y' : 'n');
+    config.categories[categoryId] = { enabled: input.toLowerCase() === 'y' };
+
+    console.log('');
+  }
 
   return config;
 }
@@ -451,7 +482,7 @@ async function uninstall() {
 
   if (existsSync(VIBE10X_DIR)) {
     await $`rm -rf ${VIBE10X_DIR}`;
-    log.success('Removed config directory');
+    log.success('Removed config directory (includes config.json and categories.json)');
   }
 
   const files = ['vibe10x.lua', 'vibe10x-menu.lua'];
@@ -492,10 +523,41 @@ function getEnabledCategoriesSummary(config) {
   return enabled.length > 0 ? enabled.join(', ') : 'none';
 }
 
+// Launch web-based settings UI
+async function launchConfigUI() {
+  log.info('Starting Vibe10X Settings UI...');
+
+  const serverPath = join(__dirname, 'server.mjs');
+  const child = spawn('bun', ['run', serverPath], {
+    stdio: 'inherit',
+    detached: false
+  });
+
+  // Handle process termination
+  process.on('SIGINT', () => {
+    child.kill('SIGINT');
+    process.exit(0);
+  });
+
+  // Wait for the server process
+  await new Promise((resolve, reject) => {
+    child.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`Server exited with code ${code}`));
+    });
+    child.on('error', reject);
+  });
+}
+
 // Main
 async function main() {
   if (args.help) {
     showHelp();
+    return;
+  }
+
+  if (args.configure) {
+    await launchConfigUI();
     return;
   }
 
