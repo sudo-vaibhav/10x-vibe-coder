@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 
 /**
- * VoiceNudge CLI
- * Global command-line interface for VoiceNudge
+ * Vibe10X CLI
+ * Global command-line interface for Vibe10X
  */
 
 import { spawn } from 'child_process';

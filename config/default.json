@@ -7,17 +7,20 @@
   "voice": {
     "enabled": false
   },
-  "monitoredApps": [
-    "Code",
-    "Cursor",
-    "Zed",
-    "Conductor",
-    "Terminal",
-    "iTerm2",
-    "Warp"
-  ],
+  "categories": {
+    "devTools": {
+      "enabled": true
+    },
+    "communication": {
+      "enabled": false
+    }
+  },
+  "customApps": {
+    "enabled": true,
+    "apps": []
+  },
   "menuBar": {
     "showCount": false,
-    "icon": "V"
+    "icon": "10X"
   }
 }

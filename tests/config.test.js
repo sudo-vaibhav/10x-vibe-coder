@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   PRESETS,
   DEFAULT_CONFIG,
+  CATEGORIES,
   applyPreset,
   clampThreshold,
   clampResetPeriod,
@@ -9,6 +10,7 @@ import {
   parseApps,
   mergeConfig,
   validateConfig,
+  getEnabledApps,
 } from '../lib/config.js';
 
 describe('PRESETS', () => {
@@ -35,6 +37,104 @@ describe('PRESETS', () => {
       alertMessage: 'Breathe. Speak.',
       voice: { enabled: true },
     });
+  });
+});
+
+describe('CATEGORIES', () => {
+  it('has devTools category with apps', () => {
+    expect(CATEGORIES.devTools).toBeDefined();
+    expect(CATEGORIES.devTools.name).toBe('Dev Tools');
+    expect(CATEGORIES.devTools.apps).toContain('Code');
+    expect(CATEGORIES.devTools.apps).toContain('Cursor');
+    expect(CATEGORIES.devTools.apps.length).toBeGreaterThan(10);
+  });
+
+  it('has communication category with apps', () => {
+    expect(CATEGORIES.communication).toBeDefined();
+    expect(CATEGORIES.communication.name).toBe('Communication');
+    expect(CATEGORIES.communication.apps).toContain('Slack');
+    expect(CATEGORIES.communication.apps).toContain('Discord');
+    expect(CATEGORIES.communication.apps.length).toBeGreaterThan(5);
+  });
+});
+
+describe('getEnabledApps', () => {
+  it('returns empty array when no categories enabled', () => {
+    const config = {
+      categories: {
+        devTools: { enabled: false },
+        communication: { enabled: false }
+      },
+      customApps: { enabled: false, apps: [] }
+    };
+    expect(getEnabledApps(config)).toEqual([]);
+  });
+
+  it('returns devTools apps when devTools enabled', () => {
+    const config = {
+      categories: {
+        devTools: { enabled: true },
+        communication: { enabled: false }
+      },
+      customApps: { enabled: false, apps: [] }
+    };
+    const apps = getEnabledApps(config);
+    expect(apps).toContain('Code');
+    expect(apps).toContain('Cursor');
+    expect(apps).not.toContain('Slack');
+  });
+
+  it('returns communication apps when communication enabled', () => {
+    const config = {
+      categories: {
+        devTools: { enabled: false },
+        communication: { enabled: true }
+      },
+      customApps: { enabled: false, apps: [] }
+    };
+    const apps = getEnabledApps(config);
+    expect(apps).toContain('Slack');
+    expect(apps).toContain('Discord');
+    expect(apps).not.toContain('Code');
+  });
+
+  it('includes custom apps when enabled', () => {
+    const config = {
+      categories: {
+        devTools: { enabled: false },
+        communication: { enabled: false }
+      },
+      customApps: { enabled: true, apps: ['MyApp', 'CustomEditor'] }
+    };
+    const apps = getEnabledApps(config);
+    expect(apps).toContain('MyApp');
+    expect(apps).toContain('CustomEditor');
+  });
+
+  it('deduplicates apps', () => {
+    const config = {
+      categories: {
+        devTools: { enabled: true },
+        communication: { enabled: false }
+      },
+      customApps: { enabled: true, apps: ['Code', 'NewApp'] }
+    };
+    const apps = getEnabledApps(config);
+    const codeCount = apps.filter(a => a === 'Code').length;
+    expect(codeCount).toBe(1);
+    expect(apps).toContain('NewApp');
+  });
+
+  it('handles missing categories gracefully', () => {
+    const config = { customApps: { enabled: true, apps: ['App1'] } };
+    const apps = getEnabledApps(config);
+    expect(apps).toEqual(['App1']);
+  });
+
+  it('handles missing customApps gracefully', () => {
+    const config = { categories: { devTools: { enabled: true } } };
+    const apps = getEnabledApps(config);
+    expect(apps).toContain('Code');
   });
 });
 
@@ -268,11 +368,25 @@ describe('validateConfig', () => {
     expect(result.errors).toContain('alertMessage must be a non-empty string');
   });
 
-  it('rejects non-array monitoredApps', () => {
-    const config = { ...DEFAULT_CONFIG, monitoredApps: 'Code' };
+  it('rejects non-array customApps.apps', () => {
+    const config = { ...DEFAULT_CONFIG, customApps: { enabled: true, apps: 'Code' } };
     const result = validateConfig(config);
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('monitoredApps must be an array');
+    expect(result.errors).toContain('customApps.apps must be an array');
+  });
+
+  it('rejects non-boolean customApps.enabled', () => {
+    const config = { ...DEFAULT_CONFIG, customApps: { enabled: 'yes', apps: [] } };
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('customApps.enabled must be a boolean');
+  });
+
+  it('rejects non-boolean category enabled', () => {
+    const config = { ...DEFAULT_CONFIG, categories: { devTools: { enabled: 'yes' } } };
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('categories.devTools.enabled must be a boolean');
   });
 
   it('rejects non-boolean enabled', () => {
@@ -288,7 +402,7 @@ describe('validateConfig', () => {
       resetAfterSeconds: 1,
       alertDurationSeconds: 0,
       alertMessage: '',
-      monitoredApps: 'not-array',
+      customApps: { enabled: 'yes', apps: 'not-array' },
       enabled: 'yes',
     };
     const result = validateConfig(config);

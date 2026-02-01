@@ -1,8 +1,8 @@
 #!/usr/bin/env zx
 
 /**
- * VoiceNudge Uninstall Script
- * Removes VoiceNudge configuration and Hammerspoon modules
+ * Vibe10X Uninstall Script
+ * Removes Vibe10X configuration and Hammerspoon modules
  */
 
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
@@ -27,12 +27,12 @@ const log = {
 
 // Paths
 const HOME = homedir();
-const VOICENUDGE_DIR = join(HOME, '.voicenudge');
+const VIBE10X_DIR = join(HOME, '.vibe10x');
 const HAMMERSPOON_DIR = join(HOME, '.hammerspoon');
 const INIT_LUA_PATH = join(HAMMERSPOON_DIR, 'init.lua');
 
 async function uninstall() {
-  console.log(`\n${colors.cyan}VoiceNudge Uninstaller${colors.reset}\n`);
+  console.log(`\n${colors.cyan}Vibe10X Uninstaller${colors.reset}\n`);
 
   // Confirm
   const readline = await import('readline');
@@ -42,7 +42,7 @@ async function uninstall() {
   });
 
   const answer = await new Promise((resolve) => {
-    rl.question('Are you sure you want to uninstall VoiceNudge? (y/N): ', resolve);
+    rl.question('Are you sure you want to uninstall Vibe10X? (y/N): ', resolve);
   });
   rl.close();
 
@@ -52,15 +52,15 @@ async function uninstall() {
   }
 
   // Remove config directory
-  if (existsSync(VOICENUDGE_DIR)) {
-    await $`rm -rf ${VOICENUDGE_DIR}`;
-    log.success('Removed ~/.voicenudge directory');
+  if (existsSync(VIBE10X_DIR)) {
+    await $`rm -rf ${VIBE10X_DIR}`;
+    log.success('Removed ~/.vibe10x directory');
   } else {
     log.info('Config directory not found (already removed?)');
   }
 
   // Remove Lua symlinks
-  const luaFiles = ['voicenudge.lua', 'voicenudge-menu.lua'];
+  const luaFiles = ['vibe10x.lua', 'vibe10x-menu.lua'];
   for (const file of luaFiles) {
     const filePath = join(HAMMERSPOON_DIR, file);
     if (existsSync(filePath)) {
@@ -75,8 +75,8 @@ async function uninstall() {
     const originalContent = content;
 
     // Remove require lines
-    content = content.replace(/require\("voicenudge"\)\n?/g, '');
-    content = content.replace(/require\("voicenudge-menu"\)\n?/g, '');
+    content = content.replace(/require\("vibe10x"\)\n?/g, '');
+    content = content.replace(/require\("vibe10x-menu"\)\n?/g, '');
 
     // Remove any empty lines at the start
     content = content.replace(/^\n+/, '');
@@ -102,7 +102,7 @@ async function uninstall() {
     }
   }
 
-  console.log(`\n${colors.green}VoiceNudge has been uninstalled.${colors.reset}\n`);
+  console.log(`\n${colors.green}Vibe10X has been uninstalled.${colors.reset}\n`);
 }
 
 uninstall().catch((err) => {
