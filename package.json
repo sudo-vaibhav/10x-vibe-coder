@@ -1,12 +1,12 @@
 {
-  "name": "voicenudge",
+  "name": "vibe10x",
   "version": "1.0.0",
   "description": "A behavioral nudge tool that reminds developers to use voice input instead of typing",
   "author": "Vaibhav / Vaatun Technologies",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "voicenudge": "./bin/voicenudge.mjs"
+    "vibe10x": "./bin/vibe10x.mjs"
   },
   "scripts": {
     "setup": "bun run setup.mjs",

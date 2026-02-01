@@ -1,12 +1,12 @@
-# VoiceNudge
+# Vibe10X
 
 A behavioral nudge tool that reminds developers to use voice input instead of typing in coding environments.
 
-## Why VoiceNudge?
+## Why Vibe10X?
 
 Modern AI coding tools (Cursor, Conductor, Zed, VS Code + Copilot) are optimized for conversational input. Voice-to-text is 3-5x faster than typing for giving instructions to AI agents, yet developers habitually type out of muscle memory.
 
-VoiceNudge displays a gentle reminder when you exceed a keystroke threshold, nudging you to switch to voice input.
+Vibe10X displays a gentle reminder when you exceed a keystroke threshold, nudging you to switch to voice input.
 
 ## Requirements
 
@@ -19,8 +19,8 @@ VoiceNudge displays a gentle reminder when you exceed a keystroke threshold, nud
 
 ```bash
 # Clone the repository
-git clone https://github.com/vaatun/voicenudge.git
-cd voicenudge
+git clone https://github.com/vaatun/vibe10x.git
+cd vibe10x
 
 # Install dependencies
 bun install
@@ -31,29 +31,30 @@ bun run setup.mjs
 
 ### Global CLI (Recommended)
 
-Install globally to use the `voicenudge` command from anywhere:
+Install globally to use the `vibe10x` command from anywhere:
 
 ```bash
-cd voicenudge
+cd vibe10x
 bun link
 ```
 
 Now you can run from anywhere:
 
 ```bash
-voicenudge              # Interactive setup
-voicenudge --help       # Show all options
-voicenudge --preset zen # Use a preset
-voicenudge --disable    # Toggle off
+vibe10x              # Interactive setup
+vibe10x --help       # Show all options
+vibe10x --preset zen # Use a preset
+vibe10x --disable    # Toggle off
 ```
 
-To unlink later: `bun unlink voicenudge`
+To unlink later: `bun unlink vibe10x`
 
 The setup wizard will guide you through:
 - Keystroke threshold (default: 50)
 - Inactivity reset period (default: 30s)
-- Apps to monitor (VS Code, Cursor, Zed, etc.)
-- Sound alerts (optional)
+- App categories to monitor (Dev Tools, Communication)
+- Custom apps to add
+- Voice alerts (optional)
 - Custom alert message
 
 ## Quick Start with Presets
@@ -71,13 +72,15 @@ bun run setup.mjs --preset zen
 
 ## Usage
 
-Once installed, VoiceNudge runs automatically when Hammerspoon starts.
+Once installed, Vibe10X runs automatically when Hammerspoon starts.
 
 ### Menu Bar
 
-Click the **V** icon in your menu bar to:
+Click the **10X** icon in your menu bar to:
 - See current status and keystroke count
-- Toggle VoiceNudge on/off
+- Toggle Vibe10X on/off
+- Manage categories (enable/disable Dev Tools, Communication)
+- Add custom apps from the frontmost application
 - Reset the counter
 - Reload configuration
 
@@ -86,15 +89,15 @@ Click the **V** icon in your menu bar to:
 Add to your `~/.hammerspoon/init.lua`:
 
 ```lua
--- Toggle VoiceNudge with Cmd+Shift+V
+-- Toggle Vibe10X with Cmd+Shift+V
 hs.hotkey.bind({"cmd", "shift"}, "V", function()
-    voicenudge.toggle()
+    vibe10x.toggle()
 end)
 ```
 
 ## Configuration
 
-Edit `~/.voicenudge/config.json`:
+Edit `~/.vibe10x/config.json`:
 
 ```json
 {
@@ -103,14 +106,20 @@ Edit `~/.voicenudge/config.json`:
   "resetAfterSeconds": 30,
   "alertDurationSeconds": 2,
   "alertMessage": "Use your voice!",
-  "sound": {
-    "enabled": false,
-    "name": "Purr"
+  "voice": {
+    "enabled": false
   },
-  "monitoredApps": ["Code", "Cursor", "Zed", "Conductor"],
+  "categories": {
+    "devTools": { "enabled": true },
+    "communication": { "enabled": false }
+  },
+  "customApps": {
+    "enabled": true,
+    "apps": []
+  },
   "menuBar": {
     "showCount": false,
-    "icon": "V"
+    "icon": "10X"
   }
 }
 ```
@@ -124,57 +133,66 @@ Edit `~/.voicenudge/config.json`:
 | `resetAfterSeconds` | `30` | Inactivity period to reset counter |
 | `alertDurationSeconds` | `2` | How long alert displays |
 | `alertMessage` | `"Use your voice!"` | Alert text |
-| `sound.enabled` | `false` | Play sound with alert |
-| `sound.name` | `"Purr"` | macOS system sound name |
-| `monitoredApps` | `[...]` | Apps to monitor (partial match) |
+| `voice.enabled` | `false` | Speak alert message aloud |
+| `categories.devTools.enabled` | `true` | Monitor dev tools (IDEs, terminals) |
+| `categories.communication.enabled` | `false` | Monitor chat apps |
+| `customApps.enabled` | `true` | Enable custom app list |
+| `customApps.apps` | `[]` | Custom apps to monitor |
 | `menuBar.showCount` | `false` | Show live count in menu bar |
-| `menuBar.icon` | `"V"` | Menu bar icon |
+| `menuBar.icon` | `"10X"` | Menu bar icon |
 
-### Available Sounds
+### App Categories
 
-`Basso`, `Blow`, `Bottle`, `Frog`, `Funk`, `Glass`, `Hero`, `Morse`, `Ping`, `Pop`, `Purr`, `Sosumi`, `Submarine`, `Tink`
+**Dev Tools** (20 apps): Code, Code - Insiders, Cursor, Zed, Conductor, Terminal, iTerm2, Warp, Alacritty, kitty, Hyper, IntelliJ IDEA, WebStorm, PyCharm, Android Studio, Xcode, Sublime Text, Atom, Nova, BBEdit
 
-### Common App Names
+**Communication** (8 apps): WhatsApp, Signal, Telegram, Slack, Discord, Messages, Microsoft Teams, Zoom
 
-| App | Config Value |
-|-----|--------------|
-| VS Code | `"Code"` |
-| VS Code Insiders | `"Code - Insiders"` |
-| Cursor | `"Cursor"` |
-| Zed | `"Zed"` |
-| Conductor | `"Conductor"` |
-| Terminal | `"Terminal"` |
-| iTerm2 | `"iTerm2"` |
-| Warp | `"Warp"` |
+### Custom Apps
+
+Add apps not in any category via the menu bar ("Categories" → "Custom Apps" → "Add Current App") or in config:
+
+```json
+{
+  "customApps": {
+    "enabled": true,
+    "apps": ["Notion", "Bear", "Obsidian"]
+  }
+}
+```
 
 ## CLI Reference
 
-After running `bun link`, use the `voicenudge` command:
+After running `bun link`, use the `vibe10x` command:
 
 ```bash
 # Interactive setup
-voicenudge
+vibe10x
 
 # Reconfigure
-voicenudge --reconfigure
+vibe10x --reconfigure
 
-# Non-interactive
-voicenudge --threshold 75 --apps "Code,Cursor,Zed"
+# Non-interactive with threshold
+vibe10x --threshold 75
+
+# Category management
+vibe10x --enable-category devTools
+vibe10x --disable-category communication
+vibe10x --enable-category devTools --enable-category communication
 
 # Presets
-voicenudge --preset aggressive
-voicenudge --preset relaxed
-voicenudge --preset zen
+vibe10x --preset aggressive
+vibe10x --preset relaxed
+vibe10x --preset zen
 
-# Toggle
-voicenudge --enable
-voicenudge --disable
+# Toggle monitoring
+vibe10x --enable
+vibe10x --disable
 
 # Uninstall
-voicenudge --uninstall
+vibe10x --uninstall
 
 # Help
-voicenudge --help
+vibe10x --help
 ```
 
 Or without global install, use `bun run setup.mjs [options]` from the repo directory.
@@ -188,12 +206,12 @@ Or without global install, use `bun run setup.mjs [options]` from the repo direc
 
 2. **Verify config:**
    ```bash
-   cat ~/.voicenudge/config.json
+   cat ~/.vibe10x/config.json
    ```
 
 3. **Check Hammerspoon console:**
    - Click Hammerspoon menu bar icon → Console
-   - Look for `VoiceNudge:` messages
+   - Look for `Vibe10X:` messages
 
 4. **Verify app name:**
    In Hammerspoon console:
@@ -216,20 +234,20 @@ Or without global install, use `bun run setup.mjs [options]` from the repo direc
 ## Uninstall
 
 ```bash
-voicenudge --uninstall
+vibe10x --uninstall
 # or
 bun run setup.mjs --uninstall
 ```
 
 Or manually:
-1. Delete `~/.voicenudge/`
-2. Remove `voicenudge.lua` and `voicenudge-menu.lua` from `~/.hammerspoon/`
-3. Remove `require("voicenudge")` from `~/.hammerspoon/init.lua`
+1. Delete `~/.vibe10x/`
+2. Remove `vibe10x.lua` and `vibe10x-menu.lua` from `~/.hammerspoon/`
+3. Remove `require("vibe10x")` from `~/.hammerspoon/init.lua`
 4. Reload Hammerspoon
 
 ## How It Works
 
-1. VoiceNudge monitors keystrokes using Hammerspoon's event tap
+1. Vibe10X monitors keystrokes using Hammerspoon's event tap
 2. Only counts in specified applications (VS Code, Cursor, etc.)
 3. Ignores modifier keys (Cmd, Ctrl, Alt) and navigation keys
 4. When threshold is reached, displays a non-intrusive alert
@@ -252,4 +270,4 @@ Vaibhav / Vaatun Technologies
 
 ---
 
-*Stop typing. Start talking.*
+*Stop typing. Start talking. Code 10X faster.*
