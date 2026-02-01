@@ -3,52 +3,41 @@
 
 local vibe10x = {}
 
--- Configuration
+-- Configuration paths
 local CONFIG_PATH = os.getenv("HOME") .. "/.vibe10x/config.json"
+local CATEGORIES_PATH = os.getenv("HOME") .. "/.vibe10x/categories.json"
 
--- Category definitions (mirrors lib/config.js)
-local CATEGORIES = {
-    devTools = {
-        name = "Dev Tools",
-        description = "Code editors, IDEs, and terminals",
-        apps = {
-            "Code",
-            "Code - Insiders",
-            "Cursor",
-            "Zed",
-            "Conductor",
-            "Terminal",
-            "iTerm2",
-            "Warp",
-            "Alacritty",
-            "kitty",
-            "Hyper",
-            "IntelliJ IDEA",
-            "WebStorm",
-            "PyCharm",
-            "Android Studio",
-            "Xcode",
-            "Sublime Text",
-            "Atom",
-            "Nova",
-            "BBEdit"
-        }
-    },
-    communication = {
-        name = "Communication",
-        description = "Messaging and chat apps",
-        apps = {
-            "WhatsApp",
-            "Signal",
-            "Telegram",
-            "Slack",
-            "Discord",
-            "Messages",
-            "Microsoft Teams",
-            "Zoom"
-        }
-    }
-}
+-- Load categories from centralized JSON file
+-- This is the single source of truth for all category definitions
+local function loadCategories()
+    local file = io.open(CATEGORIES_PATH, "r")
+    if file then
+        local content = file:read("*all")
+        file:close()
+        local ok, parsed = pcall(hs.json.decode, content)
+        if ok and parsed then
+            return parsed
+        else
+            hs.printf("Vibe10X: Failed to parse categories.json, using fallback")
+        end
+    else
+        hs.printf("Vibe10X: categories.json not found at %s, using fallback", CATEGORIES_PATH)
+    end
+    -- Fallback: empty categories (setup will install the file)
+    return {}
+end
+
+local CATEGORIES = loadCategories()
+
+-- Build default category config from loaded categories
+local function buildDefaultCategoryConfig()
+    local defaults = {}
+    for categoryId, _ in pairs(CATEGORIES) do
+        -- Enable devTools by default, others disabled
+        defaults[categoryId] = { enabled = categoryId == "devTools" }
+    end
+    return defaults
+end
 
 local DEFAULT_CONFIG = {
     enabled = true,
@@ -57,15 +46,12 @@ local DEFAULT_CONFIG = {
     alertDurationSeconds = 2,
     alertMessage = "Use your voice!",
     voice = { enabled = false },
-    categories = {
-        devTools = { enabled = true },
-        communication = { enabled = false }
-    },
+    categories = buildDefaultCategoryConfig(),
     customApps = {
         enabled = true,
         apps = {}
     },
-    menuBar = { showCount = false, icon = "10X" }
+    menuBar = { showCount = false, icon = "🦄" }
 }
 
 -- Internal state

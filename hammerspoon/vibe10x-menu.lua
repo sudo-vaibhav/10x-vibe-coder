@@ -166,22 +166,18 @@ local function buildMenu()
             menu = (function()
                 local catMenu = {}
 
-                -- Dev Tools category
-                if categories.devTools then
-                    local checkmark = categories.devTools.enabled and "ON" or "OFF"
-                    table.insert(catMenu, {
-                        title = string.format("Dev Tools [%s]", checkmark),
-                        menu = buildCategorySubmenu("devTools", categories.devTools)
-                    })
-                end
-
-                -- Communication category
-                if categories.communication then
-                    local checkmark = categories.communication.enabled and "ON" or "OFF"
-                    table.insert(catMenu, {
-                        title = string.format("Communication [%s]", checkmark),
-                        menu = buildCategorySubmenu("communication", categories.communication)
-                    })
+                -- Dynamically build menu for all categories from CATEGORIES
+                local CATEGORIES = vibe10x.CATEGORIES
+                if CATEGORIES then
+                    for categoryId, categoryDef in pairs(CATEGORIES) do
+                        if categories[categoryId] then
+                            local checkmark = categories[categoryId].enabled and "ON" or "OFF"
+                            table.insert(catMenu, {
+                                title = string.format("%s [%s]", categoryDef.name, checkmark),
+                                menu = buildCategorySubmenu(categoryId, categories[categoryId])
+                            })
+                        end
+                    end
                 end
 
                 table.insert(catMenu, { title = "-" })
@@ -224,7 +220,22 @@ local function buildMenu()
             end
         },
         {
-            title = "Open Config",
+            title = "Open Settings...",
+            fn = function()
+                -- Launch the web-based settings UI via the vibe10x CLI
+                -- Try global npm/bun command first, fallback to direct server
+                local result = hs.execute("which vibe10x")
+                if result and result ~= "" then
+                    hs.task.new("/bin/bash", nil, {"-c", "vibe10x --configure"}):start()
+                else
+                    -- Direct fallback: open the URL if server might be running
+                    hs.execute("open http://localhost:3847")
+                    hs.alert.show("Run 'vibe10x --configure' to start settings server")
+                end
+            end
+        },
+        {
+            title = "Open Config File",
             fn = function()
                 local configPath = os.getenv("HOME") .. "/.vibe10x/config.json"
                 hs.execute("open " .. configPath)

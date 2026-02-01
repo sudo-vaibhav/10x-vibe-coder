@@ -56,6 +56,25 @@ describe('CATEGORIES', () => {
     expect(CATEGORIES.communication.apps).toContain('Discord');
     expect(CATEGORIES.communication.apps.length).toBeGreaterThan(5);
   });
+
+  it('has aiApps category with apps', () => {
+    expect(CATEGORIES.aiApps).toBeDefined();
+    expect(CATEGORIES.aiApps.name).toBe('AI Apps');
+    expect(CATEGORIES.aiApps.apps).toContain('Claude');
+    expect(CATEGORIES.aiApps.apps).toContain('ChatGPT');
+    expect(CATEGORIES.aiApps.apps).toContain('Perplexity');
+    expect(CATEGORIES.aiApps.apps.length).toBeGreaterThan(5);
+  });
+
+  it('loads categories from JSON file (single source of truth)', () => {
+    // All categories should have required fields
+    for (const [id, category] of Object.entries(CATEGORIES)) {
+      expect(category.name).toBeDefined();
+      expect(category.description).toBeDefined();
+      expect(Array.isArray(category.apps)).toBe(true);
+      expect(category.apps.length).toBeGreaterThan(0);
+    }
+  });
 });
 
 describe('getEnabledApps', () => {
@@ -63,7 +82,8 @@ describe('getEnabledApps', () => {
     const config = {
       categories: {
         devTools: { enabled: false },
-        communication: { enabled: false }
+        communication: { enabled: false },
+        aiApps: { enabled: false }
       },
       customApps: { enabled: false, apps: [] }
     };
@@ -74,7 +94,8 @@ describe('getEnabledApps', () => {
     const config = {
       categories: {
         devTools: { enabled: true },
-        communication: { enabled: false }
+        communication: { enabled: false },
+        aiApps: { enabled: false }
       },
       customApps: { enabled: false, apps: [] }
     };
@@ -82,13 +103,15 @@ describe('getEnabledApps', () => {
     expect(apps).toContain('Code');
     expect(apps).toContain('Cursor');
     expect(apps).not.toContain('Slack');
+    expect(apps).not.toContain('Claude');
   });
 
   it('returns communication apps when communication enabled', () => {
     const config = {
       categories: {
         devTools: { enabled: false },
-        communication: { enabled: true }
+        communication: { enabled: true },
+        aiApps: { enabled: false }
       },
       customApps: { enabled: false, apps: [] }
     };
@@ -96,6 +119,24 @@ describe('getEnabledApps', () => {
     expect(apps).toContain('Slack');
     expect(apps).toContain('Discord');
     expect(apps).not.toContain('Code');
+    expect(apps).not.toContain('Claude');
+  });
+
+  it('returns aiApps when aiApps enabled', () => {
+    const config = {
+      categories: {
+        devTools: { enabled: false },
+        communication: { enabled: false },
+        aiApps: { enabled: true }
+      },
+      customApps: { enabled: false, apps: [] }
+    };
+    const apps = getEnabledApps(config);
+    expect(apps).toContain('Claude');
+    expect(apps).toContain('ChatGPT');
+    expect(apps).toContain('Perplexity');
+    expect(apps).not.toContain('Code');
+    expect(apps).not.toContain('Slack');
   });
 
   it('includes custom apps when enabled', () => {

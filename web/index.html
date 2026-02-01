@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe10X Settings</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-hover: #1a1a1a;
+      --border: #2a2a2a;
+      --text: #e5e5e5;
+      --text-muted: #888;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #22c55e;
+      --warning: #eab308;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h1 span {
+      background: var(--accent);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .status-dot.off {
+      background: var(--text-muted);
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    section h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .master-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .master-toggle p {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* Toggle Switch */
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle .slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 13px;
+      transition: background 0.2s;
+    }
+
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle input:checked + .slider {
+      background: var(--accent);
+    }
+
+    .toggle input:checked + .slider::before {
+      transform: translateX(22px);
+    }
+
+    /* Sliders */
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .setting-info {
+      flex: 1;
+    }
+
+    .setting-info label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .setting-info small {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    input[type="range"] {
+      width: 150px;
+      height: 6px;
+      -webkit-appearance: none;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .value-display {
+      min-width: 60px;
+      text-align: right;
+      font-family: monospace;
+      color: var(--accent);
+    }
+
+    /* Categories */
+    .categories-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .category-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .category-card.enabled {
+      border-color: var(--accent);
+    }
+
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    .category-title {
+      font-weight: 600;
+    }
+
+    .category-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .category-apps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .app-tag {
+      background: var(--surface);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .app-tag.more {
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Custom Apps */
+    .custom-apps-input {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .custom-apps-input input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-size: 0.875rem;
+      outline: none;
+    }
+
+    .custom-apps-input input:focus {
+      border-color: var(--accent);
+    }
+
+    .custom-apps-input input::placeholder {
+      color: var(--text-muted);
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button.secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    button.secondary:hover {
+      background: var(--surface-hover);
+    }
+
+    .custom-apps-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .custom-app-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+
+    .custom-app-chip .remove {
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .custom-app-chip .remove:hover {
+      color: #ef4444;
+    }
+
+    /* Alert Settings */
+    .alert-preview {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .alert-preview-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .alert-preview-message {
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    input[type="text"].message-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-size: 0.875rem;
+      outline: none;
+      margin-top: 0.5rem;
+    }
+
+    input[type="text"].message-input:focus {
+      border-color: var(--accent);
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 1rem;
+    }
+
+    .footer-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .save-btn {
+      padding: 0.875rem 2rem;
+      font-size: 1rem;
+    }
+
+    .save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--success);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Presets */
+    .presets {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .preset-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+    }
+
+    /* Expandable apps */
+    .apps-expanded {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: var(--surface);
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Vibe10X <span>Settings</span></h1>
+      <div class="status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Loading...</span>
+      </div>
+    </header>
+
+    <section>
+      <div class="master-toggle">
+        <div>
+          <h2>Enable Vibe10X</h2>
+          <p>Monitor keystrokes and remind you to use voice input</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <h2>Behavior</h2>
+      <div class="presets">
+        <button class="preset-btn" data-preset="aggressive">Aggressive</button>
+        <button class="preset-btn" data-preset="relaxed">Relaxed</button>
+        <button class="preset-btn" data-preset="zen">Zen</button>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>Keystroke Threshold</label>
+          <small>Show alert after this many keystrokes</small>
+        </div>
+        <div class="setting-control">
+          <input type="range" id="threshold" min="10" max="200" step="5">
+          <span class="value-display" id="thresholdValue">50</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>Reset After Inactivity</label>
+          <small>Reset counter after this many seconds of no typing</small>
+        </div>
+        <div class="setting-control">
+          <input type="range" id="resetAfterSeconds" min="5" max="120" step="5">
+          <span class="value-display" id="resetAfterSecondsValue">30s</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>Alert Duration</label>
+          <small>How long the alert stays on screen</small>
+        </div>
+        <div class="setting-control">
+          <input type="range" id="alertDurationSeconds" min="1" max="10" step="0.5">
+          <span class="value-display" id="alertDurationSecondsValue">2s</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>Voice Alert</label>
+          <small>Speak the alert message using macOS text-to-speech</small>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="voiceEnabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <h2>Alert Message</h2>
+      <input type="text" class="message-input" id="alertMessage" placeholder="Use your voice!">
+      <div class="alert-preview">
+        <div class="alert-preview-label">Preview</div>
+        <div class="alert-preview-message" id="alertPreview">Use your voice!</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>App Categories</h2>
+      <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">
+        Select which types of apps to monitor for typing activity
+      </p>
+      <div class="categories-grid" id="categoriesGrid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <section>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+          <h2>Custom Apps</h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem;">
+            Add specific apps not covered by categories
+          </p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="customAppsEnabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="custom-apps-input">
+        <input type="text" id="customAppInput" placeholder="Enter app name (e.g., Notion)">
+        <button id="addCustomApp">Add</button>
+      </div>
+      <div class="custom-apps-list" id="customAppsList">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <section>
+      <h2>Menu Bar</h2>
+      <div class="setting-row">
+        <div class="setting-info">
+          <label>Show Keystroke Count</label>
+          <small>Display current count in the menu bar</small>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="menuBarShowCount">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div class="footer-info">
+        Config: ~/.vibe10x/config.json
+      </div>
+      <button class="save-btn" id="saveBtn">Save Changes</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Settings saved!</div>
+
+  <script>
+    let config = {};
+    let categories = {};
+    let hasChanges = false;
+
+    // Fetch initial data
+    async function init() {
+      try {
+        const [configRes, categoriesRes] = await Promise.all([
+          fetch('/api/config'),
+          fetch('/api/categories')
+        ]);
+        config = await configRes.json();
+        categories = await categoriesRes.json();
+        render();
+        updateStatus();
+      } catch (err) {
+        console.error('Failed to load config:', err);
+        document.getElementById('statusText').textContent = 'Error loading config';
+        document.getElementById('statusDot').classList.add('off');
+      }
+    }
+
+    function render() {
+      // Master toggle
+      document.getElementById('enabled').checked = config.enabled;
+
+      // Behavior sliders
+      document.getElementById('threshold').value = config.threshold;
+      document.getElementById('thresholdValue').textContent = config.threshold;
+
+      document.getElementById('resetAfterSeconds').value = config.resetAfterSeconds;
+      document.getElementById('resetAfterSecondsValue').textContent = config.resetAfterSeconds + 's';
+
+      document.getElementById('alertDurationSeconds').value = config.alertDurationSeconds;
+      document.getElementById('alertDurationSecondsValue').textContent = config.alertDurationSeconds + 's';
+
+      document.getElementById('voiceEnabled').checked = config.voice?.enabled || false;
+
+      // Alert message
+      document.getElementById('alertMessage').value = config.alertMessage;
+      document.getElementById('alertPreview').textContent = config.alertMessage;
+
+      // Categories
+      renderCategories();
+
+      // Custom apps
+      document.getElementById('customAppsEnabled').checked = config.customApps?.enabled ?? true;
+      renderCustomApps();
+
+      // Menu bar
+      document.getElementById('menuBarShowCount').checked = config.menuBar?.showCount || false;
+    }
+
+    function renderCategories() {
+      const grid = document.getElementById('categoriesGrid');
+      grid.innerHTML = '';
+
+      for (const [id, cat] of Object.entries(categories)) {
+        const enabled = config.categories?.[id]?.enabled || false;
+        const previewApps = cat.apps.slice(0, 6);
+        const moreCount = cat.apps.length - previewApps.length;
+
+        const card = document.createElement('div');
+        card.className = `category-card ${enabled ? 'enabled' : ''}`;
+        card.innerHTML = `
+          <div class="category-header">
+            <div class="category-title">${cat.name}</div>
+            <label class="toggle">
+              <input type="checkbox" data-category="${id}" ${enabled ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="category-meta">${cat.description} &bull; ${cat.apps.length} apps</div>
+          <div class="category-apps">
+            ${previewApps.map(app => `<span class="app-tag">${app}</span>`).join('')}
+            ${moreCount > 0 ? `<span class="app-tag more" data-category="${id}">+${moreCount} more</span>` : ''}
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+
+      // Add event listeners for category toggles
+      grid.querySelectorAll('input[data-category]').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const categoryId = e.target.dataset.category;
+          if (!config.categories) config.categories = {};
+          if (!config.categories[categoryId]) config.categories[categoryId] = {};
+          config.categories[categoryId].enabled = e.target.checked;
+          e.target.closest('.category-card').classList.toggle('enabled', e.target.checked);
+          markChanged();
+        });
+      });
+
+      // Show more apps on click
+      grid.querySelectorAll('.app-tag.more').forEach(el => {
+        el.addEventListener('click', (e) => {
+          const categoryId = e.target.dataset.category;
+          const cat = categories[categoryId];
+          const appsContainer = e.target.parentElement;
+
+          // Remove "more" tag and show all
+          e.target.remove();
+          const existing = appsContainer.querySelectorAll('.app-tag').length;
+          cat.apps.slice(existing).forEach(app => {
+            const tag = document.createElement('span');
+            tag.className = 'app-tag';
+            tag.textContent = app;
+            appsContainer.appendChild(tag);
+          });
+        });
+      });
+    }
+
+    function renderCustomApps() {
+      const list = document.getElementById('customAppsList');
+      const apps = config.customApps?.apps || [];
+      list.innerHTML = apps.map(app => `
+        <div class="custom-app-chip">
+          <span>${app}</span>
+          <span class="remove" data-app="${app}">&times;</span>
+        </div>
+      `).join('');
+
+      list.querySelectorAll('.remove').forEach(el => {
+        el.addEventListener('click', (e) => {
+          const appName = e.target.dataset.app;
+          config.customApps.apps = config.customApps.apps.filter(a => a !== appName);
+          renderCustomApps();
+          markChanged();
+        });
+      });
+    }
+
+    function updateStatus() {
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+
+      if (config.enabled) {
+        statusDot.classList.remove('off');
+        const appCount = countMonitoredApps();
+        statusText.textContent = `Monitoring ${appCount} apps`;
+      } else {
+        statusDot.classList.add('off');
+        statusText.textContent = 'Disabled';
+      }
+    }
+
+    function countMonitoredApps() {
+      let count = 0;
+      const seen = new Set();
+
+      if (config.categories) {
+        for (const [id, catConfig] of Object.entries(config.categories)) {
+          if (catConfig.enabled && categories[id]) {
+            categories[id].apps.forEach(app => seen.add(app));
+          }
+        }
+      }
+
+      if (config.customApps?.enabled && config.customApps.apps) {
+        config.customApps.apps.forEach(app => seen.add(app));
+      }
+
+      return seen.size;
+    }
+
+    function markChanged() {
+      hasChanges = true;
+      document.getElementById('saveBtn').textContent = 'Save Changes *';
+    }
+
+    function showToast(message = 'Settings saved!') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // Event listeners
+    document.getElementById('enabled').addEventListener('change', (e) => {
+      config.enabled = e.target.checked;
+      updateStatus();
+      markChanged();
+    });
+
+    document.getElementById('threshold').addEventListener('input', (e) => {
+      config.threshold = parseInt(e.target.value);
+      document.getElementById('thresholdValue').textContent = config.threshold;
+      markChanged();
+    });
+
+    document.getElementById('resetAfterSeconds').addEventListener('input', (e) => {
+      config.resetAfterSeconds = parseInt(e.target.value);
+      document.getElementById('resetAfterSecondsValue').textContent = config.resetAfterSeconds + 's';
+      markChanged();
+    });
+
+    document.getElementById('alertDurationSeconds').addEventListener('input', (e) => {
+      config.alertDurationSeconds = parseFloat(e.target.value);
+      document.getElementById('alertDurationSecondsValue').textContent = config.alertDurationSeconds + 's';
+      markChanged();
+    });
+
+    document.getElementById('voiceEnabled').addEventListener('change', (e) => {
+      if (!config.voice) config.voice = {};
+      config.voice.enabled = e.target.checked;
+      markChanged();
+    });
+
+    document.getElementById('alertMessage').addEventListener('input', (e) => {
+      config.alertMessage = e.target.value;
+      document.getElementById('alertPreview').textContent = e.target.value || 'Use your voice!';
+      markChanged();
+    });
+
+    document.getElementById('customAppsEnabled').addEventListener('change', (e) => {
+      if (!config.customApps) config.customApps = { enabled: true, apps: [] };
+      config.customApps.enabled = e.target.checked;
+      markChanged();
+    });
+
+    document.getElementById('addCustomApp').addEventListener('click', () => {
+      const input = document.getElementById('customAppInput');
+      const appName = input.value.trim();
+      if (appName) {
+        if (!config.customApps) config.customApps = { enabled: true, apps: [] };
+        if (!config.customApps.apps.includes(appName)) {
+          config.customApps.apps.push(appName);
+          renderCustomApps();
+          markChanged();
+        }
+        input.value = '';
+      }
+    });
+
+    document.getElementById('customAppInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('addCustomApp').click();
+      }
+    });
+
+    document.getElementById('menuBarShowCount').addEventListener('change', (e) => {
+      if (!config.menuBar) config.menuBar = {};
+      config.menuBar.showCount = e.target.checked;
+      markChanged();
+    });
+
+    // Presets
+    const presets = {
+      aggressive: { threshold: 30, resetAfterSeconds: 20, alertMessage: 'Voice! Now!' },
+      relaxed: { threshold: 100, resetAfterSeconds: 60, alertMessage: 'Consider using voice input' },
+      zen: { threshold: 25, resetAfterSeconds: 15, alertMessage: 'Breathe. Speak.', voice: { enabled: true } }
+    };
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = presets[btn.dataset.preset];
+        Object.assign(config, preset);
+        render();
+        markChanged();
+        showToast(`Applied "${btn.dataset.preset}" preset`);
+      });
+    });
+
+    // Save
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config)
+        });
+
+        if (res.ok) {
+          hasChanges = false;
+          btn.textContent = 'Save Changes';
+          showToast('Settings saved! Hammerspoon will reload.');
+          updateStatus();
+        } else {
+          throw new Error('Failed to save');
+        }
+      } catch (err) {
+        btn.textContent = 'Save Changes';
+        showToast('Error saving settings');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Warn before leaving with unsaved changes
+    window.addEventListener('beforeunload', (e) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
